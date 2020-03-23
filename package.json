@@ -1,0 +1,29 @@
+{
+  "name": "StreetViewAnimate",
+  "version": "1.0.0",
+  "description": "Create a streetview animation for lon-lat data",
+  "main": "main.js",
+  "dependencies": {
+    "commander": "^5.0.0",
+    "rebuild": "^0.1.2",
+    "robotjs": "^0.6.0"
+  },
+  "devDependencies": {
+    "electron": "8.1.1",
+    "electron-packager": "^14.2.1",
+    "electron-rebuild": "^1.10.1",
+    "electron-reload": "^1.5.0"
+  },
+  "repository": {},
+  "scripts": {
+    "start": "electron main.js",
+    "dev": "electron . --enable-logging",
+    "clean": "rm -rf ./dist",
+    "clean:osx": "rm -rf ./dist/osx",
+    "pack": "npm run clean && npm run pack:osx",
+    "pack:osx": "npm run clean:osx && electron-packager . \"VisACC\" --out=dist/osx --platform=darwin --arch=x64 --asar.unpackDir=asar_subdir --version=0.36.2 --icon=../bird.icns --ignore=dist --ignore=assets --ignore=builder.json --ignore=bower.json --ignore=README.md --ignore=.gitignore --ignore=preview.png",
+    "rebuild": "npm install electron-rebuild & ./node_modules/.bin/electron-rebuild -f -t prod,optional,dev -w"
+  },
+  "author": "Daniel Ellis, daniel.ellis.research@gmail.com",
+  "license": "ISC"
+}
