@@ -5,8 +5,10 @@
   "main": "main.js",
   "dependencies": {
     "commander": "^5.0.0",
+    "d3": "^5.16.0",
     "rebuild": "^0.1.2",
-    "robotjs": "^0.6.0"
+    "robotjs": "^0.6.0",
+    "yargs": "^15.3.1"
   },
   "devDependencies": {
     "electron": "8.1.1",

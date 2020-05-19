@@ -22,7 +22,7 @@ Add to electron ... `--no-sandbox`
 
 
 ### Still image/location
-`npm start --latitude 52 --longitude -1 --bearing 10 --name 'mytest' `
+`electron main.js --latitude 52 --longitude -1 --bearing 10 --name 'mytest' `
 
 Optional arguments: width, height 
 
@@ -34,4 +34,11 @@ Optional arguments: width, height
 
 
 ## Testing
-`npm start -b 180` should provide the test image of leeds showing a traffic light. 
+`electron main.js -b 180` should provide the test image of leeds showing a traffic light. 
+
+
+## Styles
+
+### Satellite 
+
+This is the default style which creates asimple satellite image of the 

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+  <script src="https://d3js.org/topojson.v1.min.js"></script>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3-contour.v1.min.js"></script>
+  <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.51.0/mapbox-gl.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.51.0/mapbox-gl.css' rel='stylesheet' />
+<script src='d3-ForceEdgeBundling.js'></script>
+<script src="d3-tip.js"></script>
+<script src='bundle.js'></script>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+  <div id="map"></div>
+<script>
+
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZW5qYWxvdCIsImEiOiJjaWhtdmxhNTIwb25zdHBsejk0NGdhODJhIn0.2-F2hS_oTZenAWc0BMf_uw'
+
+
+var scale_c = d3.scaleLog()
+var colour = d3.interpolateSpectral
+
+d3.csv('concatdata/merge_037.csv',function(data){
+console.log(data);
+  data = data.map(w=> {w.lat=parseFloat(w.lat); w.lon=parseFloat(w.lon);w.conc= parseFloat(w.conc); return w})
+  window.d = data
+  var concs = data.map(w=>w.conc)
+  var lon=data.map(e=>e.lon);
+  var lat = data.map(e=>e.lat)
+  scale_c = scale_c.domain(d3.extent(concs)).range([0,1])
+
+  //console.log(concs.map(d=>colour(scale_c(d))),scale_c.domain())
+
+var pitch = 18
+
+var basezoom = 13
+var home = [d3.mean(lon),d3.mean(lat)]
+    //Setup mapbox-gl map
+    var map = new mapboxgl.Map({
+      container: 'map', // container id
+      style: 'mapbox://styles/mapbox/light-v9',
+      center: home,
+      zoom: basezoom,
+      pitch:pitch,
+      //bearing: -17.6,
+    })
+    map.scrollZoom.disable()
+
+
+
+    // Setup our svg layer that we can manipulate with d3
+    var container = map.getCanvasContainer()
+
+    function getD3() {
+      var bbox = document.body.getBoundingClientRect();
+      var center = map.getCenter();
+      var zoom = map.getZoom();
+      // 512 is hardcoded tile size, might need to be 256 or changed to suit your map config
+      var scale = (512) * 0.5 / Math.PI * Math.pow(2, zoom);
+
+      var shift = 0.001
+      map.fitBounds([
+      [d3.min(lon)-shift,d3.min(lat)-shift],
+      [d3.max(lon)+shift,d3.max(lat)+shift]
+      ])
+
+      var d3projection = d3.geoMercator()
+        .center([center.lng, center.lat])
+        .translate([bbox.width/2, bbox.height/2])
+        .scale(scale);
+
+      return d3projection;
+    }
+    // calculate the original d3 projection
+    var d3Projection = getD3();
+    var path = d3.geoPath()
+console.log(data,data[1])
+var container = d3.select(container)
+container.style('position','absolute')
+var svg = container.select(function() { return this.parentNode; })//.insert("svg",":first-child")
+.append('svg').style('width','100%').style('height','100%').style('position','relative').style('pointer-events', 'none')
+
+/*
+// gooey filter
+var defs = svg.append('defs');
+	var filter = defs.append('filter').attr('id','gooey');
+	filter.append('feGaussianBlur')
+		.attr('in','SourceGraphic')
+		.attr('stdDeviation','3')
+		.attr('result','blur');
+	filter.append('feColorMatrix')
+		.attr('in','blur')
+		.attr('mode','matrix')
+		.attr('values','1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 38 -9')
+		.attr('result','gooey');
+	filter.append('feComposite')
+		.attr('in','SourceGraphic')
+		.attr('in2','gooey')
+		.attr('operator','atop');
+	// end gooey
+
+
+*/
+
+
+
+
+
+
+
+
+
+function points(dur=1000){
+//points
+svg.selectAll(".measure").remove()
+
+
+  svg.selectAll(".measure").data(data)
+      .enter().append("circle").classed("measure", true)
+  //    .attr("r", 1)
+      .style('fill',d=>d3.rgb(colour(1-scale_c(d.conc))))//"#0082a3")
+    //  .style("fill-opacity", 0.6)
+      //.style('stroke',d=>d3.rgb(colour(d.conc)).darker())//"#004d60")
+      .style("stroke-width", 3)
+.transition().duration(dur)
+      .attr("r", d=>1+13*scale_c(d.conc))
+      .attr('cx',
+         function(d) {
+          var x = d3Projection([d.lon,d.lat])[0];
+          return x
+
+      })
+      .attr('cy',function(d) {
+          var y = d3Projection([d.lon,d.lat])[1];
+          return y
+
+      })
+      //.style("filter", "url(#gooey)")
+      .attr('opacity',.67)
+      //.style('mix-blend-mode','hard-light')
+
+
+      //.attr('transform','matrix(1,0,0,'+((180-pitch)/180.)+',0,0)')
+
+
+      contours = d3.contourDensity()
+          .x(d => x(d.x))
+          .y(d => y(d.y))
+          .size([width, height])
+          .bandwidth(30)
+          .thresholds(30)
+        (data)
+
+
+console.log(contours)
+
+
+                svg.append("g")
+                      .attr("fill", "none")
+                      .attr("stroke", "#fff")
+                      .attr("stroke-opacity", 0.5)
+                    .selectAll("path")
+                    .data(contours)
+                    .join("path")
+                      .attr("fill", d => color(d.value))
+                      .attr("d", d3.geoPath());
+
+
+
+
+}
+
+
+
+      function render() {
+      d3Projection = getD3();
+      //window.p =   path.projection(d3Projection)
+
+
+
+    d3.selectAll('.measure')
+        .attr('cx',
+           function(d) {
+            var x = d3Projection([d.lon,d.lat])[0];
+            return x
+
+        })
+        .attr('cy',function(d) {
+            var y = d3Projection([d.lon,d.lat])[1];
+            return y
+
+        })
+
+
+        var center = map.getCenter();
+        var mv = d3Projection([center.lng, center.lat])
+        var mv2 =d3Projection(home)
+
+
+      }
+
+      // re-render our visualization whenever the view changes
+      map.on("viewreset", function() {render()})
+      map.on("move", function() {render()  })
+
+
+
+/////////////////////
+//3d buildings
+      map.on('load', function() {
+
+        //edgebundle(pitch)
+points(0)
+
+
+setTimeout(function(){
+
+var div = document.querySelector('.mapboxgl-ctrl.mapboxgl-ctrl-attrib')
+div.innerHTML = ''
+}, 3000);
+
+
+          // Insert the layer beneath any symbol layer.
+          var layers = map.getStyle().layers;
+
+          var labelLayerId;
+          for (var i = 0; i < layers.length; i++) {
+              if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
+                  labelLayerId = layers[i].id;
+                  break;
+              }
+          }
+
+      map.addLayer({
+            'id': '3d-buildings',
+            'source': 'composite',
+            'source-layer': 'building',
+            'filter': ['==', 'extrude', 'true'],
+            'type': 'fill-extrusion',
+            'minzoom': 2,
+            'paint': {
+                'fill-extrusion-color': '#aaa',
+
+                // use an 'interpolate' expression to add a smooth transition effect to the
+                // buildings as the user zooms in
+                'fill-extrusion-height': [
+                    "interpolate", ["linear"], ["zoom"],
+                    3, 0,
+                    3.05, ["get", "height"]
+                ],
+                'fill-extrusion-base': [
+                    "interpolate", ["linear"], ["zoom"],
+                    3, 0,
+                    3.05, ["get", "min_height"]
+                ],
+                'fill-extrusion-opacity': .7
+            }
+        }, labelLayerId);
+})
+
+      // render our initial visualization
+      render()
+    })
+
+window.onresize = function(){ location.reload(); }
+  </script>
+</body>
